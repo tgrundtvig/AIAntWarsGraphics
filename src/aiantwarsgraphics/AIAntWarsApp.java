@@ -47,12 +47,15 @@ public class AIAntWarsApp implements PanAndZoom2DApp, IOnGameFinished
     private Point2D mouseHUDPos;
     private Thread gameThread;
     private IAntAI[] ais;
+    private BoardPos[] positions;
 
-    public AIAntWarsApp(Board board, IAntAI[] ais)
+    public AIAntWarsApp(Board board, IAntAI[] ais, BoardPos[] positions)
     {
-        if(ais.length != 4) throw new RuntimeException("There must be 4 AI's");
+        if(ais.length < 2) throw new RuntimeException("There must be at least AI's");
+        if(ais.length != positions.length) throw new RuntimeException("The number of AI's and positions does not match");
         this.board = board;
         this.ais = ais;
+        this.positions = positions;
     }
     
     @Override
@@ -70,16 +73,11 @@ public class AIAntWarsApp implements PanAndZoom2DApp, IOnGameFinished
         
         AntWarsGameCtrl ctrl = new AntWarsGameCtrl(graphicsAntFactory, board, this);
         
-        
-        
-        TeamInfo team1 = new TeamInfo(1, "Team 1");
-        TeamInfo team2 = new TeamInfo(2, "Team 2");
-        TeamInfo team3 = new TeamInfo(3, "Team 3");
-        TeamInfo team4 = new TeamInfo(4, "Team 4");
-        ctrl.createAnt(team1, EAntType.QUEEN, ais[0], board.getLocation(0, 0), 0);
-        ctrl.createAnt(team2, EAntType.QUEEN, ais[1], board.getLocation(board.getSizeX()-1, board.getSizeY()-1), 2);
-        ctrl.createAnt(team3, EAntType.QUEEN, ais[2], board.getLocation(0, board.getSizeY()-1), 1);
-        ctrl.createAnt(team4, EAntType.QUEEN, ais[3], board.getLocation(board.getSizeX()-1, 0), 3);
+        for(int i = 0; i < ais.length; ++i)
+        {
+            TeamInfo team = new TeamInfo((i+1), "Team " + (i + 1));
+            ctrl.createAnt(team, EAntType.QUEEN, ais[i], board.getLocation(positions[i].getX(), positions[i].getY()), positions[i].getDirection());
+        }
         gameThread = new Thread(ctrl);
         gameThread.start();
         return new PanAndZoomInit(  g2d.origo(),
